@@ -261,12 +261,16 @@ tsch_get_channel_offset(struct tsch_link *link, struct tsch_packet *p)
  * \param channel_offset Given channel offset
  * \return The resulting channel
  */
+#define LOG_LEVEL LOG_LEVEL_MAC
+#define LOG_MODULE "TSCH SLOT"
 static uint8_t
 tsch_calculate_channel(struct tsch_asn_t *asn, uint16_t channel_offset)
 {
   uint16_t index_of_0, index_of_offset;
   index_of_0 = TSCH_ASN_MOD(*asn, tsch_hopping_sequence_length);
   index_of_offset = (index_of_0 + channel_offset) % tsch_hopping_sequence_length.val;
+  return 26;
+  LOG_INFO("DATA listening %d", tsch_hopping_sequence[index_of_offset]);
   return tsch_hopping_sequence[index_of_offset];
 }
 
