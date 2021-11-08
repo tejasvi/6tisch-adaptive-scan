@@ -2,7 +2,7 @@
 #define PROJECT_CONF_H_
 
 /* Enable Adaptive scan time */
-#define ADAPTIVE_SCAN 1
+#define ADAPTIVE_SCAN 0
 
 /* Broadcast channel bias extent (integer). 0 to disable */
 #define BROADCAST_BIAS 3
@@ -15,7 +15,7 @@
 
 #define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){ 16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21 }
 #define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){ 15, 25, 26, 20 }
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_16_16
+#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_4_4
 
 /* Enable debug logs */
 #define ADAPTIVE_SCAN_DEBUG  0
@@ -30,7 +30,7 @@
 #define SLOTFRAME_DURATION_CS ((clock_time_t)(TSCH_SCHEDULE_DEFAULT_LENGTH * 0.01 * CLOCK_SECOND))
 
 /* Reduce the EB period in order to update the network nodes with more agility */
-#define TSCH_CONF_EB_PERIOD (4 * SLOTFRAME_DURATION_CS)
+#define TSCH_CONF_EB_PERIOD (16 * SLOTFRAME_DURATION_CS)
 #define TSCH_CONF_MAX_EB_PERIOD TSCH_CONF_EB_PERIOD
 
 /* Logging */

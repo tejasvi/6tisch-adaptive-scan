@@ -1,4 +1,4 @@
-A 6TisCH node that demonstrates initial synchronization of 6TiSCH networks using adaptive scan period and compares the connection time with fixed optimal scan period. Core implementation can be found at `os/net/mac/tsch/tsch-adaptive-scan.h`.
+A 6TisCH node that demonstrates initial synchronization of 6TiSCH networks using adaptive scan period and compares the connection time with fixed optimal scan period. Core implementation can be found at `os/net/mac/tsch/tsch-adaptive-scan.h`. The overview of os  modifications and the sample implementation can be seen [here](https://github.com/contiki-ng/contiki-ng/compare/develop...tejasvi:project#diff-1668b253a38f79989d24a0d1d8962b9b91fa326c5c1afbe2ba2b83ea4cf5bf4c).
 
 Modes of operation
 ------------------
@@ -7,8 +7,9 @@ Checkout `examples/6tisch/adaptive-scan/project-conf.h` for available options. P
 * `ADAPTIVE_SCAN = 1` enables adaptive scan period else it fallsback to optimum scan period as specified in Optimal Initial Synchronization Time in Minimal 6TiSCH Configuration by A. Karalis et al.
 * `BROADCAST_BIAS = N` biases the broadcast channel selection by the advertisor to the integeral `N` extent.
 * `TSCH_CONF_DEFAULT_HOPPING_SEQUENCE` specifies the broadcast channel sequence used by the advertisors.
+* `TSCH_CONF_EB_PERIOD` specifies the multiple of slotframe duration used as the delay between two consecutive EBs.
 
-By default, the application is going to operate in the role of a regular RPL+TSCH node or coordinator in `3:1` ratio.
+By default, the node assign themselves the role of reciever and advertisor in the ratio of `3:1`.
 
 Cooja setup
 ---------------------
