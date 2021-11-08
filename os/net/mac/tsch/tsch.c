@@ -54,10 +54,10 @@
 #include "net/link-stats.h"
 #include "net/mac/framer/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-adaptive-scan.h"
 #include "net/mac/mac-sequence.h"
 #include "lib/random.h"
 #include "net/routing/routing.h"
-#include <stdlib.h>
 
 #if TSCH_WITH_SIXTOP
 #include "net/mac/tsch/sixtop/sixtop.h"
@@ -765,28 +765,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 }
 /* Processes and protothreads used by TSCH */
 
-static unsigned long channel_average[sizeof(TSCH_JOIN_HOPPING_SEQUENCE)][2];
-
-/* reverse sort */
-int true_comparison(const void *a, const void *b) {
-  unsigned long idxa = *(unsigned long *)a;
-  unsigned long idxb = *(unsigned long *)b;
-
-  if (channel_average[idxa][0] > channel_average[idxb][0])
-    return -1;
-  else if (channel_average[idxa][0] < channel_average[idxb][0])
-    return 1;
-  else
-    return random_rand() % 2 ? +1 : -1;
-}
-
-static unsigned long custom_sequence[sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
-static char seq_data[999];
-static unsigned long len = 0;
-static unsigned long i = 0;
-static unsigned long try_count = 0;
-static int connected_idx = 0;
-
 /*---------------------------------------------------------------------------*/
 /* Scanning protothread, called by tsch_process:
  * Listen to different channels, and when receiving an EB,
@@ -806,8 +784,8 @@ PT_THREAD(tsch_scan(struct pt *pt))
   etimer_set(&scan_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
   current_channel_since = clock_time();
 
-  while (1){
-  try_count = 0;
+while (1){
+before_attempt_setup(&current_channel_since);
   while(!tsch_is_associated && !tsch_is_coordinator) {
     /* Hop to any channel offset */
     static uint8_t current_channel = 0;
@@ -818,15 +796,14 @@ PT_THREAD(tsch_scan(struct pt *pt))
     clock_time_t now_time = clock_time();
 
     /* Switch to a (new) channel for scanning */
-    if(current_channel == 0 || now_time - current_channel_since > TSCH_CHANNEL_SCAN_DURATION) {
+    if(current_channel == 0 ||  pre_time_spent(current_channel, now_time, current_channel_since)) {
       /* Pick a channel at random in TSCH_JOIN_HOPPING_SEQUENCE */
-      connected_idx = custom_sequence[try_count % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
       uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
-          connected_idx];
+        not_associated_scan_t()];
 
       NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, scan_channel);
       current_channel = scan_channel;
-      LOG_INFO("scanning on channel %u\n", scan_channel);
+      if (ADAPTIVE_SCAN_DEBUG) LOG_INFO("scanning on channel %u\n", scan_channel);
 
       current_channel_since = now_time;
     }
@@ -869,34 +846,15 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(tsch_is_associated) {
       /* End of association, turn the radio off */
       NETSTACK_RADIO.off();
+      associated_scan_t(current_channel_since, current_channel);
     } else if(!tsch_is_coordinator) {
       /* Go back to scanning */
       etimer_reset(&scan_timer);
       PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
-
-    try_count += 1;
   }
-    if(tsch_is_associated) {
-      channel_average[connected_idx][0]+=2;
-      for (len = i=0; i < sizeof(TSCH_JOIN_HOPPING_SEQUENCE) && i < 15; ++i){
-        if (channel_average[connected_idx][i] > 0)
-          channel_average[connected_idx][i]--;
-      }
-      LOG_INFO("DATA increas %d %ld\n", TSCH_JOIN_HOPPING_SEQUENCE[connected_idx], channel_average[connected_idx][0]);
-      // channel_average[chidx][1] += ((now_time - current_channel_since)/100);
-
-      qsort(custom_sequence, sizeof(TSCH_JOIN_HOPPING_SEQUENCE), sizeof(unsigned long), true_comparison);
-
-      for (len = i=0; i < sizeof(TSCH_JOIN_HOPPING_SEQUENCE) && i < 15; ++i)
-      {
-        len += sprintf(seq_data+len, ", %d", TSCH_JOIN_HOPPING_SEQUENCE[custom_sequence[i]]);
-      }
-      LOG_INFO("DATA seq %d %s \n", sizeof(TSCH_JOIN_HOPPING_SEQUENCE), seq_data);
-
-      tsch_is_associated = 0;
-    }
-  }
+  associated_f(&tsch_is_associated);
+}
 
   PT_END(pt);
 }
@@ -908,13 +866,7 @@ PROCESS_THREAD(tsch_process, ev, data)
   static struct pt scan_pt;
 
   PROCESS_BEGIN();
-
-  for (int idx = 0; idx < sizeof(TSCH_JOIN_HOPPING_SEQUENCE);idx++)
-  {
-    custom_sequence[idx] = idx;
-  }
-
-  LOG_INFO("HAHa %d\n", custom_sequence[0]);
+  initial_setup();
 
   while(1) {
 
@@ -962,7 +914,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
 
   /* Set an initial delay except for coordinator, which should send an EB asap */
   if(!tsch_is_coordinator) {
-    etimer_set(&eb_timer, TSCH_EB_PERIOD ? random_rand() % TSCH_EB_PERIOD : 0);
+    etimer_set(&eb_timer, TSCH_EB_PERIOD != 0 ? random_rand() % TSCH_EB_PERIOD : 0);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
 

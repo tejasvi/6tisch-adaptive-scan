@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/examples/6tisch/adaptive-scan",
+                "${workspaceFolder}/arch/platform/cooja",
+                "${workspaceFolder}/os"
+            ],
+            "defines": [
+                "CONTIKI_TARGET_COOJA=1",
+                "TARGET=cooja"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "forcedInclude": [
+                "/home/tsinghto/o/examples/6tisch/adaptive-scan/project-conf.h"
+            ]
+        }
+    ],
+    "version": 4
+}

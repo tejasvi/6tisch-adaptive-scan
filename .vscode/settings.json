@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "project-conf.h": "c",
+        "cstdlib": "c",
+        "scanimpl.h": "c",
+        "stdio.h": "c",
+        "contiki-conf.h": "c",
+        "tsch.h": "c",
+        "adaptive-scan.h": "c",
+        "tsch-conf.h": "c",
+        "tsch-adaptive-scan.h": "c"
+    }
+}

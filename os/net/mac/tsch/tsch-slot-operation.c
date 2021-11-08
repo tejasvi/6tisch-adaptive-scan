@@ -52,6 +52,7 @@
 #include "net/queuebuf.h"
 #include "net/mac/framer/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
+#include "net/mac/tsch/tsch-adaptive-scan.h"
 #include "sys/critical.h"
 
 #include "sys/log.h"
@@ -253,6 +254,7 @@ tsch_get_channel_offset(struct tsch_link *link, struct tsch_packet *p)
   return link->channel_offset;
 }
 
+#if !BROADCAST_BIAS
 /**
  * Returns a 802.15.4 channel from an ASN and channel offset. Basically adds
  * The offset to the ASN and performs a hopping sequence lookup.
@@ -261,18 +263,15 @@ tsch_get_channel_offset(struct tsch_link *link, struct tsch_packet *p)
  * \param channel_offset Given channel offset
  * \return The resulting channel
  */
-#define LOG_LEVEL LOG_LEVEL_MAC
-#define LOG_MODULE "TSCH SLOT"
 static uint8_t
 tsch_calculate_channel(struct tsch_asn_t *asn, uint16_t channel_offset)
 {
   uint16_t index_of_0, index_of_offset;
   index_of_0 = TSCH_ASN_MOD(*asn, tsch_hopping_sequence_length);
   index_of_offset = (index_of_0 + channel_offset) % tsch_hopping_sequence_length.val;
-  return 26;
-  LOG_INFO("DATA listening %d", tsch_hopping_sequence[index_of_offset]);
   return tsch_hopping_sequence[index_of_offset];
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Timing utility functions */
@@ -1067,7 +1066,11 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         } else {
           /* Hop channel */
           tsch_current_channel_offset = tsch_get_channel_offset(current_link, current_packet);
+#if BROADCAST_BIAS
+          tsch_current_channel = tsch_calculate_channel_biased(tsch_hopping_sequence, tsch_hopping_sequence_length.val);
+#else
           tsch_current_channel = tsch_calculate_channel(&tsch_current_asn, tsch_current_channel_offset);
+#endif
         }
         NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, tsch_current_channel);
         /* Turn the radio on already here if configured so; necessary for radios with slow startup */
