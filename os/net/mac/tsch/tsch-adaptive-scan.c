@@ -26,7 +26,6 @@ static unsigned long attempt_count = 0;
 static channel_info channel_average[sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
 
 #if ADAPTIVE_SCAN_DEBUG
-static char scan_data[999];
 static char seq_data[999];
 static unsigned long len = 0;
 #endif
@@ -191,8 +190,8 @@ void associated_f(int * tsch_is_associated) {
             ADAPTIVE_SCAN);
 
     for (len = i = 0; i < sizeof(TSCH_JOIN_HOPPING_SEQUENCE) && i < 15; ++i)
-      len += sprintf(scan_data + len, ",%d:%lu", TSCH_JOIN_HOPPING_SEQUENCE[custom_sequence[i]], channel_scan_time[i]);
-    LOG_INFO("DATA scan data %s \n", scan_data);
+      len += sprintf(seq_data + len, ",%d:%lu", TSCH_JOIN_HOPPING_SEQUENCE[custom_sequence[i]], channel_scan_time[i]);
+    LOG_INFO("DATA scan data %s \n", seq_data);
 #endif
 
     for (i = 0; i < sizeof(TSCH_JOIN_HOPPING_SEQUENCE); ++i)
