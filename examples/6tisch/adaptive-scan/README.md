@@ -1,4 +1,4 @@
-A 6TisCH node that demonstrates initial synchronization of 6TiSCH networks using adaptive scan period and compares the connection time with fixed optimal scan period. Core implementation can be found at `os/net/mac/tsch/tsch-adaptive-scan.h`. The overview of os  modifications and the sample implementation can be seen [here](https://github.com/contiki-ng/contiki-ng/compare/develop...tejasvi:project#diff-1668b253a38f79989d24a0d1d8962b9b91fa326c5c1afbe2ba2b83ea4cf5bf4c).
+A 6TisCH node that demonstrates initial synchronization of 6TiSCH networks using adaptive scan period and compares the connection time with fixed optimal scan period. Core implementation can be found at `os/net/mac/tsch/tsch-adaptive-scan.h`. The overview of os  modifications and the sample implementation can be seen [here](https://github.com/tejasvi/6tisch-adaptive-scan/compare/develop...project#diff-1668b253a38f79989d24a0d1d8962b9b91fa326c5c1afbe2ba2b83ea4cf5bf4c).
 
 Modes of operation
 ------------------
